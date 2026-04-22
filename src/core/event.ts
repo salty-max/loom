@@ -3,7 +3,11 @@ import type { Time } from '@loom/core/time.js';
 /**
  * Context carried alongside an event — origin hints useful for debugging
  * composed patterns. Free-form because transforms decide what's helpful
- * to forward (parent pattern name, mini-notation span, etc.).
+ * to forward.
+ *
+ * Conventional keys (producers should prefer these over ad-hoc names):
+ * - `origin` — module that produced the event (`'mini'`, `'pure'`, ...)
+ * - `span` — `[startChar, endChar]` source span for mini-notation events
  */
 export interface EventContext {
   readonly [key: string]: unknown;
@@ -20,7 +24,11 @@ export interface EventContext {
 export interface Event<T> {
   /** Inclusive lower bound in cycles. */
   readonly begin: Time;
-  /** Exclusive upper bound in cycles. Always strictly greater than `begin`. */
+  /**
+   * Exclusive upper bound in cycles. By convention strictly greater than
+   * `begin` — producers (e.g. `Pattern.query`) maintain this; consumers
+   * may assume it.
+   */
   readonly end: Time;
   /** The value active over `[begin, end)`. */
   readonly value: T;
