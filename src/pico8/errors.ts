@@ -16,15 +16,19 @@ export type Pico8ErrorCode =
   | 'PICO8_SONG_LOOP_OUT_OF_RANGE';
 
 /**
- * Error thrown by the PICO-8 layer. Carries a stable `code` alongside
- * the human-readable message so catch sites can match on the code.
+ * Error thrown by the PICO-8 layer. Carries a stable `code`, a
+ * human-readable message, and an optional `details` payload with
+ * machine-readable context (e.g. `{ at: cycle, channels: [...] }`
+ * for `PICO8_TOO_MANY_CHANNELS`).
  */
 export class Pico8Error extends Error {
   readonly code: Pico8ErrorCode;
+  readonly details: Readonly<Record<string, unknown>> | undefined;
 
-  constructor(code: Pico8ErrorCode, message: string) {
+  constructor(code: Pico8ErrorCode, message: string, details?: Readonly<Record<string, unknown>>) {
     super(message);
     this.name = 'Pico8Error';
     this.code = code;
+    this.details = details;
   }
 }
