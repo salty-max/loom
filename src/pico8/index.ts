@@ -1,4 +1,12 @@
 export {
+  BUILTIN_INSTRUMENTS,
+  type BuiltinInstrument,
+  instrumentIdFromName,
+  type InstrumentName,
+  instrumentNameFromId,
+  isBuiltin,
+} from '@loom/pico8/instruments.js';
+export {
   EFFECT_MAX,
   EFFECT_MIN,
   type EffectId,
