@@ -1,0 +1,71 @@
+{
+  "name": "loom",
+  "version": "0.0.1",
+  "description": "A pattern-algebra DSL for algorithmic music, inspired by TidalCycles and Strudel but scoped to the PICO-8 tracker model. Core is dep-free TypeScript; adapters for print/web-audio/MIDI are optional.",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./pico8": {
+      "import": "./dist/pico8/index.js",
+      "types": "./dist/pico8/index.d.ts"
+    },
+    "./adapters/print": {
+      "import": "./dist/adapters/print.js",
+      "types": "./dist/adapters/print.d.ts"
+    },
+    "./mini": {
+      "import": "./dist/mini/index.js",
+      "types": "./dist/mini/index.d.ts"
+    }
+  },
+  "bin": {
+    "loom": "./dist/cli.js"
+  },
+  "files": ["dist", "README.md", "CLAUDE.md"],
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "dev": "tsc --watch --project tsconfig.build.json",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^22.10.7",
+    "@vitest/coverage-v8": "^4.1.4",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unicorn": "^62.0.0",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "knip": "^6.3.0",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^4.1.4"
+  },
+  "lint-staged": {
+    "*.ts": ["eslint --fix"]
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "keywords": ["music", "livecoding", "pattern", "dsl", "tidalcycles", "strudel", "chiptune", "pico-8"]
+}
