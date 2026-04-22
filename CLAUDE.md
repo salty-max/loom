@@ -231,6 +231,20 @@ refactor/<short-description>
 test/<short-description>
 ```
 
+## Issue-to-PR workflow
+
+When working through the backlog:
+
+1. **One PR per issue.** Never bundle multiple issues into a single branch or PR.
+2. **Wait for merge before starting the next issue.** After opening a PR, stop and wait for the user to merge (or to explicitly say "continue" / "stack"). Do not branch the next issue off an unmerged one unless told to.
+3. **Self-review loop before handing off.** Once the implementation for an issue feels done:
+   - Run `/review` (or spawn the review agent) against the current branch.
+   - Apply every bug, nit, and suggestion the reviewer flags — use `git commit --fixup <sha>` on the original commit, never a standalone "address review" commit.
+   - Re-run the reviewer.
+   - Repeat until the reviewer responds **LGTM** (or equivalent "no further changes").
+   - Only then open / push the PR to the user.
+4. **Reviewer feedback is binding.** Do not cherry-pick which suggestions to apply. If a suggestion is wrong, push back in the review thread rather than silently ignoring it.
+
 ## Key rules summary
 
 1. **Scope locked to PICO-8 in v0** — public API does not expose anything PICO-8 can't do.
@@ -247,3 +261,4 @@ test/<short-description>
 12. **Fixup for review feedback** — never standalone "fix review" commits.
 13. **Never mention Claude in commits, PRs, or issues.**
 14. **Never skip hooks** (`--no-verify`, `--no-gpg-sign`, etc.).
+15. **One PR per issue, wait for merge, self-review until LGTM** — see "Issue-to-PR workflow" above.
