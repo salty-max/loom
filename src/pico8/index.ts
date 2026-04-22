@@ -1,3 +1,10 @@
+// Importing this module triggers `Pattern.prototype` augmentation —
+// after any import of `@loom/pico8`, every `Pattern<T>` instance
+// exposes the chainable setters (`.inst`, `.vol`, `.fx`, `.ch`,
+// `.speed`, plus their long aliases).
+import '@loom/pico8/augment.js';
+
+export type { ChannelIndex, Pico8Attributes } from '@loom/pico8/attributes.js';
 export {
   type Effect,
   effectIdFromName,
@@ -5,6 +12,7 @@ export {
   effectNameFromId,
   EFFECTS,
 } from '@loom/pico8/effects.js';
+export { Pico8Error, type Pico8ErrorCode } from '@loom/pico8/errors.js';
 export {
   BUILTIN_INSTRUMENTS,
   type BuiltinInstrument,
