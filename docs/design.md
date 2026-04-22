@@ -372,20 +372,31 @@ Binaire `loom` installé via `bun add loom` ou équivalent. Commandes :
 | `loom events <file>` | Évalue le fichier, print JSON events pour N cycles (défaut 1) sur stdout | v0 |
 | `loom serve [file]` | Spawn serveur local sur :3030, ouvre le navigateur sur un éditeur live | v0.1 |
 | `loom play <file>` | Lecture temps-réel via binding Node audio (ou headless browser bridge) | v0.1 |
-| `loom render <file> -o out.wav` | Offline rendering vers `.wav` | v0.1 |
+| `loom render <file> -o out.{wav,mid}` | Offline rendering. Format dispatché par l'extension : `.wav` (audio) ou `.mid` (Standard MIDI File). Flag `--stems` pour exporter 1 `.wav` par canal | v0.1 |
 | `loom repl` | REPL terminal pour live coding texte-only | v1 |
 
 `loom serve` est **le workflow principal** — la qualité de son et l'UX éditeur/hot-swap sont là. `loom play` est un fallback terminal pour scripts/CI. `loom render` est pour l'export final.
 
 ---
 
-## 9. Formats de fichier
+## 9. Formats de fichier & export
+
+### Résumé — matrice des imports/exports
+
+| Format | Direction | Module | Issue | Use case |
+|---|---|---|---|---|
+| `.loom.ts` | in (source live + file) | n/a (eval sandbox) | — | Source primaire — ce que l'utilisateur écrit |
+| `.p8` | **in / out** (roundtrip) | `loom/pico8/p8` | #11 | Interop avec PICO-8 lui-même |
+| `.wav` | out | `loom/adapters/web-audio` via OfflineAudioContext | #19 | Audio rendu pour publier / partager / mixer |
+| `.wav` stems | out | idem, flag `--stems` | #19 | 1 `.wav` par canal → mix dans un DAW |
+| `.mid` | out | `loom/adapters/midi-file` | #30 | Import dans Ableton / Logic / FL / Reaper |
+| URL hash `#s=…` | **in / out** | `loom/pico8/share` | #31 | Partage 100% client-side, pas de serveur |
 
 ### `.loom.ts` (source)
 
 Un fichier TypeScript standard qui `export default` un `Song` (ou un `MusicPattern` ou un `Pattern` plus libre). Imports depuis `loom/*` pré-autorisés dans la sandbox d'eval.
 
-### `.p8` import/export (issue #11)
+### `.p8` roundtrip (#11)
 
 Le format cart PICO-8 est un texte simple avec des sections :
 
@@ -403,13 +414,47 @@ __music__
 01 00424344 <- pattern 0, chain flags + 4 sfx ids
 ```
 
-Loom ne s'intéresse qu'aux sections `__sfx__` et `__music__`. Parser + serializer garantissent un roundtrip lossless. Use cases :
+Loom ne s'intéresse qu'aux sections `__sfx__` et `__music__`. Parser + serializer garantissent un **roundtrip lossless**. Use cases :
 - Import d'un cart existant pour le remixer en code
 - Export d'une composition Loom vers un cart ouvert dans PICO-8
 
-### Compression d'URL pour partage (v1+)
+### `.wav` render (#19)
 
-Un pattern peut être encodé en string compacte (pako + base64url) et stocké dans un hash d'URL `#s=xxxx`. Le `loom serve` charge ce hash au démarrage pour ouvrir directement une composition partagée. Type de lien : `loom.xxx/play#s=eJyz...` — 100% client-side, pas de serveur nécessaire.
+Via `OfflineAudioContext` + web-audio adapter (même signal path que playback live, sans sortie realtime). Défaut : 16-bit PCM, 44.1 kHz.
+
+Flag `--stems` : au lieu d'un seul mixdown, produit `out.ch0.wav`, `out.ch1.wav`, `out.ch2.wav`, `out.ch3.wav` — 1 fichier par canal PICO-8. Use case : importer les stems dans un DAW pour mixer avec des pistes non-Loom (voix, guitare, synthé externe).
+
+**Non supporté** : MP3, OGG, FLAC. Après un `.wav` render, l'utilisateur convertit avec `ffmpeg -i out.wav out.mp3` si besoin. Pas la peine d'embarquer libmp3lame/libvorbis dans le bundle Loom.
+
+### `.mid` export (#30)
+
+Standard MIDI File 1.0, distinct du **live MIDI adapter** (#16) qui pilote un synth hardware en temps réel. Le `.mid` export produit un fichier pour ouvrir dans un DAW offline.
+
+Mapping PICO-8 → MIDI :
+- 4 canaux → 4 tracks distincts (MIDI channels 0-3)
+- `pitch 0-63` → note number avec offset configurable (défaut +36 pour que `pitch 0 = C2`)
+- `volume 0-7` → velocity 0-127 (mapping linéaire ×18)
+- `slide` → pitch-bend interpolé
+- `vibrato` → CC 1 (mod wheel) modulé
+- `arp fast/slow` → événements note-on discrets au taux de l'arpège
+- `drop`, `fade in/out` → courbes CC d'expression, **best-effort documenté comme lossy**
+
+Les effets qui n'ont pas d'équivalent direct en MIDI sont documentés comme "rendu approximatif" — un DAW qui importe le `.mid` entendra quelque chose de proche mais pas identique au rendu Loom.
+
+### URL share (#31)
+
+Encode une composition (Song ou MusicPattern) en string compacte via :
+1. Sérialisation binaire custom (format fixe PICO-8 : 32 steps × 4 channels × {pitch, instr, vol, effect} ≈ 320 bytes/pattern)
+2. Compression pako (DEFLATE)
+3. Encodage base64url (URL-safe)
+
+Payload attendu pour un song de 4 patterns : **500-800 bytes encodé**. Tient largement dans la limite d'URL de n'importe quel navigateur.
+
+Use case : partage viral à la BeepBox. Tu postes `loom.fun/play#s=eJyz...` sur Discord/Twitter/Reddit, le destinataire clique, `loom serve` (ou le player web autonome) décode le hash et **lit la compo sans serveur, sans compte, sans install**.
+
+Un byte de version en tête permet de migrer le format si on change la sérialisation plus tard sans casser les liens existants.
+
+**Hors scope** : raccourcisseurs d'URL genre `loom.fun/s/abc123`. Ça demanderait un backend avec storage, ce qui contredit le principe "Loom lib = pure client". Les fonctionnalités hébergées (liens courts, discovery, likes) sont le boulot de Bloop, pas de Loom.
 
 ---
 
@@ -463,19 +508,21 @@ Un pattern peut être encodé en string compacte (pako + base64url) et stocké d
 
 **Sortie v0** : bibliothèque qui compile, se teste, publie des .d.ts, et laisse l'utilisateur vérifier à la main qu'un pattern produit les bons events. Pas encore de son.
 
-### v0.1 — "live coding" (10 issues)
+### v0.1 — "live coding + export" (12 issues)
 
 - **#11** import/export `.p8`
 - **#15** web-audio adapter avec 8-bit synth
 - **#18** CLI play
-- **#19** CLI render
+- **#19** CLI render (`.wav`, `.mid`, stems)
 - **#24** CLI serve (éditeur browser + Cmd+Enter)
 - **#25** runtime controller hot-swap
 - **#26** mini groups `[x y]`
 - **#27** mini alternation `<x y>`
 - **#28** mini modifiers `*n` `/n` `@n`
+- **#30** MIDI file export (`.mid` Standard MIDI File 1.0)
+- **#31** URL share encoding (pako + base64url pour `#s=…`)
 
-**Sortie v0.1** : la v1 publique en mode beta. Les utilisateurs peuvent installer, `loom serve`, entendre, itérer. Mini-notation suffisamment riche pour écrire 80% des patterns sans combinator TS.
+**Sortie v0.1** : la v1 publique en mode beta. Les utilisateurs peuvent installer, `loom serve`, entendre, itérer, **exporter** (audio, MIDI, stems, lien de partage). Mini-notation suffisamment riche pour écrire 80% des patterns sans combinator TS.
 
 ### v1 — "polish" (3 issues)
 
