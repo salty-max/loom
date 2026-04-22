@@ -1,10 +1,30 @@
-// Public surface of the PICO-8-flavored layer.
-//
-// Populated as the roadmap lands:
-// - types (Note, SfxStep, MusicChannel, SongStep)
-// - instruments (8 built-in waveforms + custom slots)
-// - effects (8 per-step effects)
-// - sfx builder (32-step constraint, speed, note validation)
-// - music builder (4-channel stack)
-// - song builder (music pattern chain with loop markers)
-export {};
+export {
+  EFFECT_MAX,
+  EFFECT_MIN,
+  type EffectId,
+  INSTRUMENT_BUILTIN_MAX,
+  INSTRUMENT_MAX,
+  INSTRUMENT_MIN,
+  type InstrumentId,
+  type LoopRange,
+  MUSIC_CHANNELS_MAX,
+  type MusicChannel,
+  type MusicPattern,
+  type Note,
+  type Pitch,
+  PITCH_MAX,
+  PITCH_MIN,
+  type Rest,
+  type Sfx,
+  type SfxChannel,
+  type SfxStep,
+  type SilenceChannel,
+  type Song,
+  type Speed,
+  SPEED_MAX,
+  SPEED_MIN,
+  STEPS_PER_SFX,
+  type Volume,
+  VOLUME_MAX,
+  VOLUME_MIN,
+} from '@loom/pico8/types.js';
