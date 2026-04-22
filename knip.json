@@ -2,7 +2,6 @@
   "$schema": "https://unpkg.com/knip@latest/schema.json",
   "entry": [
     "src/core/index.ts",
-    "src/transforms/index.ts",
     "src/adapters/index.ts",
     "src/runtime/index.ts"
   ],

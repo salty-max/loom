@@ -22,6 +22,10 @@
     "./mini": {
       "import": "./dist/mini/index.js",
       "types": "./dist/mini/index.d.ts"
+    },
+    "./transforms": {
+      "import": "./dist/transforms/index.js",
+      "types": "./dist/transforms/index.d.ts"
     }
   },
   "bin": {
