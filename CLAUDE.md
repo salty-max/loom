@@ -244,6 +244,9 @@ When working through the backlog:
    - Repeat until the reviewer responds **LGTM** (or equivalent "no further changes").
    - Only then open / push the PR to the user.
 4. **Reviewer feedback is binding.** Do not cherry-pick which suggestions to apply. If a suggestion is wrong, push back in the review thread rather than silently ignoring it.
+5. **Every feature/fix PR carries a changeset.** Before opening the PR, run `bun run changeset`, pick the bump level (`patch` / `minor` / `major`), and write the user-facing summary. The resulting `.changeset/*.md` file is committed alongside the code on the same branch. Pure tooling / chore / docs / ci / test PRs that don't change public behavior can skip the changeset — the Changeset Bot's warning on those is expected.
+
+   **Pre-MVP posture:** no automatic release workflow runs on `main` yet. Changesets accumulate in `.changeset/` across the v0 backlog. When the MVP ships, run `bun run changeset:version` locally once — it consumes every pending changeset into a single version bump and a complete `CHANGELOG.md` for v0.1.0. Post-MVP, if the team wants an auto-release workflow, wire `changesets/action@v1` into `.github/workflows/release.yml`.
 
 ## Key rules summary
 
@@ -262,3 +265,4 @@ When working through the backlog:
 13. **Never mention Claude in commits, PRs, or issues.**
 14. **Never skip hooks** (`--no-verify`, `--no-gpg-sign`, etc.).
 15. **One PR per issue, wait for merge, self-review until LGTM** — see "Issue-to-PR workflow" above.
+16. **Feature/fix PRs include a changeset** — see "Issue-to-PR workflow" rule 5.
