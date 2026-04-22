@@ -269,41 +269,58 @@ Cette stratégie permet le **hot-swap gratuit** : remplacer `controller.activePa
 
 ## 6. Syntaxe utilisateur
 
-### TS-first, mini-notation inline
+### Strudel-like : Pattern + chainable setters + combinators
 
-Un fichier Loom typique (`.loom.ts`) :
+**Principe fondamental** : tout est un `Pattern`. Les constructors retournent un Pattern, les setters retournent un nouveau Pattern (immutables), la composition passe par des combinators (`stack`, `cat`, `seq`). **Pas de builder objects, pas de `.with({…})`, pas de config bags** — c'est ce qui distingue Strudel des DSL Java-esques et c'est ce qu'on reproduit.
+
+#### Chainable setters pour attributs PICO-8
+
+Chaque attribut a une méthode setter courte (live-coding ergonomique) :
+
+| Setter | Attribut | Valeur acceptée |
+|---|---|---|
+| `.inst(x)` | Instrument / waveform | ID 0-15 ou string (`'triangle'`, `'square'`, `'noise'`, …) |
+| `.vol(n)` | Volume | 0-7, **ou un `Pattern<number>` pour varier par step** |
+| `.fx(x)` | Effet per-step | ID 0-7 ou string (`'vibrato'`, `'slide'`, `'arp-fast'`, …) |
+| `.ch(n)` | Canal PICO-8 | 0-3 |
+| `.speed(n)` | Ticks par step | 1-255 |
+
+Setters **patternisables** : on peut passer un primitive ou un autre Pattern. `.vol(mini('5 3 7 2'))` fait varier le volume sur 4 steps. C'est la signature Strudel — tout est un pattern, y compris les paramètres.
+
+#### Composition via combinators
+
+| Combinator | Effet |
+|---|---|
+| `stack(a, b, c)` | Layer les patterns — ils jouent simultanément |
+| `cat(a, b, c)` | Concaténation — un pattern par cycle, en boucle |
+| `seq(a, b, c)` | Séquence dans un cycle — chacun prend 1/N du cycle |
+
+#### Fichier Loom typique (`.loom.ts`)
 
 ```ts
-import { stack, seq } from 'loom';
-import { sfx, music, song } from 'loom/pico8';
-import { fast, slow, rev, every } from 'loom/transforms';
-import { mini } from 'loom/mini';
+import { mini, stack, cat } from 'loom';
+import { fast, slow, rev } from 'loom/transforms';
 
-// Mini-notation pour des rythmes denses
-const bass = mini('<c2 g2 e2 c3>/2')
-  .with({ instrument: 'triangle', volume: 5 });
+// Patterns avec setters chaînés
+const bass = mini('<c2 g2 e2 c3>/2').inst('triangle').vol(5).ch(0);
+const lead = mini('c5 [e5 g5] ~ c6').inst('square').vol(6).fx('vibrato').ch(1);
+const hats = mini('~*4 [c4 c4]*2').inst('noise').vol(3).ch(2);
 
-// Composition TS pour réutiliser, transformer, structurer
-const lead = mini('c5 [e5 g5] ~ c6')
-  .with({ instrument: 'square', volume: 6, effect: 'vibrato' });
+// Composition — stack pour simultané, cat pour séquentiel
+const verse = stack(bass, lead, hats);
 
-const hats = mini('~*4 [c4 c4]*2')
-  .with({ instrument: 'noise', volume: 3 });
+const chorus = stack(
+  bass,
+  lead.fast(2),                                    // transform directement sur le pattern
+  hats,
+  mini('c3 g3').slow(2).inst('triangle').ch(3),
+);
 
-const verse = music({
-  ch0: bass,
-  ch1: lead,
-  ch2: hats,
-});
-
-const chorus = verse
-  .with({ ch1: lead.fast(2) })     // lead joue 2× plus vite
-  .with({ ch3: mini('c3 g3').slow(2) });
-
-export default song([verse, verse, chorus, chorus], {
-  loop: [0, 3],                    // boucle le tout
-});
+// Export par défaut — consommé par loom serve / play / render
+export default cat(verse, verse, chorus, chorus);
 ```
+
+Pas de `sfx({...})`, pas de `music({ ch0, ch1 })`, pas de `.with({...})`. Le tracker PICO-8 est **enforce à la frontière** (l'adapter valide : ≤4 canaux, pitch 0-63, vol 0-7), mais l'authoring reste fonctionnel et chainable.
 
 ### Décision : TS + mini-notation, pas YAML
 
