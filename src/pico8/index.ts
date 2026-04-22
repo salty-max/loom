@@ -51,4 +51,8 @@ export {
   VOLUME_MAX,
   VOLUME_MIN,
 } from '@loom/pico8/types.js';
-export { type Pico8TooManyChannelsDetails, pico8Validate } from '@loom/pico8/validate.js';
+export {
+  MAX_VALIDATE_CYCLES,
+  type Pico8TooManyChannelsDetails,
+  pico8Validate,
+} from '@loom/pico8/validate.js';

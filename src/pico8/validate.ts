@@ -16,6 +16,19 @@ export interface Pico8TooManyChannelsDetails extends Record<string, unknown> {
 }
 
 /**
+ * Upper bound on the `cycles` argument accepted by `pico8Validate`.
+ * Pre-flight is meant to catch obvious channel-stacking mistakes
+ * before a render starts — well beyond a handful of cycles the cost
+ * of walking every primitive once-per-cycle dominates for no
+ * additional coverage. Callers needing longer horizons can slice
+ * the pattern and validate segments in turn.
+ *
+ * @todo Surface this bound in the `loom events` CLI help text once #17
+ *   lands so users see the ceiling alongside the flag.
+ */
+export const MAX_VALIDATE_CYCLES = 10_000;
+
+/**
  * Walks `pattern` over the first `cycles` cycles and throws
  * `Pico8Error('PICO8_TOO_MANY_CHANNELS')` if any instant has more
  * than `MUSIC_CHANNELS_MAX` distinct channels active simultaneously.
@@ -29,12 +42,25 @@ export interface Pico8TooManyChannelsDetails extends Record<string, unknown> {
  * `loom events` warns before emitting.
  *
  * @param pattern - Pattern whose events carry an optional `ch` attribute
- * @param cycles - Positive integer — how many cycles to validate
- * @throws `Pico8Error('PICO8_TOO_MANY_CHANNELS')` on collision
+ * @param cycles - Integer in `[1, MAX_VALIDATE_CYCLES]`
+ * @throws `Pico8Error('PICO8_INVALID_CYCLES')` when `cycles` is not a
+ *   positive integer, or exceeds `MAX_VALIDATE_CYCLES`
+ * @throws `Pico8Error('PICO8_TOO_MANY_CHANNELS')` on channel collision
  */
 export function pico8Validate(pattern: Pattern<Pico8Attributes>, cycles: number): void {
   if (!Number.isInteger(cycles) || cycles <= 0) {
-    throw new TypeError(`pico8Validate: cycles must be a positive integer, got ${cycles}`);
+    throw new Pico8Error(
+      'PICO8_INVALID_CYCLES',
+      `pico8Validate: cycles must be a positive integer, got ${cycles}`,
+      { cycles },
+    );
+  }
+  if (cycles > MAX_VALIDATE_CYCLES) {
+    throw new Pico8Error(
+      'PICO8_INVALID_CYCLES',
+      `pico8Validate: cycles ${cycles} exceeds MAX_VALIDATE_CYCLES (${MAX_VALIDATE_CYCLES})`,
+      { cycles, max: MAX_VALIDATE_CYCLES },
+    );
   }
 
   const events = pattern.query(Time.ZERO, new Time(BigInt(cycles), 1n));
