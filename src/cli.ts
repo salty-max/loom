@@ -19,7 +19,7 @@ See CLAUDE.md for the PICO-8 scope boundary and the roadmap issues for
 the planned implementation order.
 `;
 
-const [, , command] = process.argv;
+const command = process.argv[2];
 
 if (!command || command === '--help' || command === '-h') {
   process.stdout.write(USAGE);

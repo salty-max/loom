@@ -1,7 +1,11 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "entry": ["src/index.ts", "src/cli.ts"],
-  "project": ["src/**/*.ts", "test/**/*.ts"],
-  "ignoreDependencies": ["@commitlint/cli"],
+  "entry": [
+    "src/core/index.ts",
+    "src/transforms/index.ts",
+    "src/adapters/index.ts",
+    "src/runtime/index.ts"
+  ],
+  "project": ["src/**/*.ts"],
   "ignoreExportsUsedInFile": true
 }

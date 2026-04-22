@@ -35,7 +35,7 @@ export class Time {
    */
   static from(value: number): Time {
     if (!Number.isFinite(value)) {
-      throw new Error(`Time.from: value must be finite, got ${value}`);
+      throw new TypeError(`Time.from: value must be finite, got ${value}`);
     }
     if (Number.isInteger(value)) {
       return new Time(BigInt(value), 1n);

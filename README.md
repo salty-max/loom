@@ -50,19 +50,20 @@ loom render "path/to/tune.loom.ts" -o out.wav
 ## Install (when published)
 
 ```sh
-pnpm add loom
+bun add loom
+# or: npm / pnpm / yarn add loom
 ```
 
 ## Development
 
-Requires Node 24 and pnpm.
+Requires [Bun](https://bun.sh) ≥ 1.3.
 
 ```sh
-pnpm install
-pnpm typecheck
-pnpm lint
-pnpm test
-pnpm build
+bun install
+bun run typecheck
+bun run lint
+bun run test
+bun run build
 ```
 
 CI runs typecheck, lint, test, build, and `knip` dead-code detection on every PR.

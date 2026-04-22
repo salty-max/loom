@@ -38,6 +38,12 @@ export default defineConfig(
       'unicorn/better-regex': 'warn',
       'unicorn/prefer-top-level-await': 'off',
       'unicorn/no-null': 'off',
+      // `num` / `den` are standard math notation for rationals, not loose
+      // abbreviations. The rule is too aggressive for a DSL codebase.
+      'unicorn/prevent-abbreviations': 'off',
+      // `export {}` in a stub index.ts is the TypeScript-canonical way to
+      // mark an empty file as an ES module. Disable for empty stubs.
+      'unicorn/require-module-specifiers': 'off',
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
       curly: ['error', 'all'],

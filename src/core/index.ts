@@ -1,1 +1,1 @@
-export { Time } from '@loom/core/time';
+export { Time } from '@loom/core/time.js';

@@ -7,12 +7,14 @@ Practices distilled from `georide-api-v2/CLAUDE.md` and `georide-mobile-app-v2/C
 ## Tech stack
 
 - **TypeScript** strict mode, ESM-first
-- **Node 24**, pnpm
+- **Bun** (runtime + package manager + bundler) ≥ 1.3
 - **Vitest** for tests
 - **ESLint** (typescript-eslint strict + prettier + unicorn + simple-import-sort)
 - **Husky + lint-staged + commitlint** for pre-commit / commit-msg enforcement
 - **Knip** for dead-code detection
 - **GitHub Actions** CI (lint / typecheck / test / build / knip on every PR)
+
+`tsc` still drives the library build (we need `.d.ts` emission). Bun runs everything else — scripts, tests-driver, CLI dev loop via `bun run src/cli.ts`.
 
 ## Scope (v0 — non-negotiable)
 
@@ -62,6 +64,15 @@ core  →  pico8  →  adapters  →  cli / runtime
 ### Path aliases, never relative
 
 Use `@loom/*` (maps to `src/*`). Relative imports are forbidden, enforced by ESLint once the rule lands. Inside a module, sibling imports still use the full alias path.
+
+**Import paths carry a `.js` extension** even though the source file is `.ts`. This is the canonical TypeScript NodeNext pattern — TypeScript resolves `@loom/core/time.js` to `src/core/time.ts` for type-checking, and the emitted JS runs correctly because the same `.js` path exists under `dist/` at runtime. Example:
+
+```ts
+import { Time } from '@loom/core/time.js';
+export * from '@loom/core/index.js';
+```
+
+Omitting the `.js` breaks `tsc` under `moduleResolution: "nodenext"`.
 
 ### `index.ts` rules
 
