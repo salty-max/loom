@@ -1,8 +1,10 @@
-// Importing this module triggers `Pattern.prototype` augmentation —
+// Importing these modules triggers `Pattern.prototype` augmentation —
 // after any import of `@loom/pico8`, every `Pattern<T>` instance
 // exposes the chainable setters (`.inst`, `.vol`, `.fx`, `.ch`,
-// `.speed`, plus their long aliases).
+// `.speed`, plus their long aliases) and the `.loop({start, end})`
+// song-loop marker.
 import '@loom/pico8/augment.js';
+import '@loom/pico8/loop.js';
 
 export type { ChannelIndex, Pico8Attributes } from '@loom/pico8/attributes.js';
 export {
@@ -21,6 +23,7 @@ export {
   instrumentNameFromId,
   isBuiltin,
 } from '@loom/pico8/instruments.js';
+export { getLoopRange } from '@loom/pico8/loop.js';
 export {
   EFFECT_MAX,
   EFFECT_MIN,
