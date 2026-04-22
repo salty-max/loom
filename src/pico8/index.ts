@@ -1,4 +1,11 @@
 export {
+  type Effect,
+  effectIdFromName,
+  type EffectName,
+  effectNameFromId,
+  EFFECTS,
+} from '@loom/pico8/effects.js';
+export {
   BUILTIN_INSTRUMENTS,
   type BuiltinInstrument,
   instrumentIdFromName,
