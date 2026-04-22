@@ -6,5 +6,6 @@
     "src/runtime/index.ts"
   ],
   "project": ["src/**/*.ts"],
+  "ignore": ["src/**/__fixtures__/**"],
   "ignoreExportsUsedInFile": true
 }
