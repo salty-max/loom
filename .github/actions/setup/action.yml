@@ -1,0 +1,22 @@
+name: Setup Loom
+description: Install Bun, cache ~/.bun/install/cache, and run bun install. Caller must checkout first.
+
+inputs:
+  bun-version:
+    description: Bun version to install (pinned by the workflow to avoid drift).
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: ${{ inputs.bun-version }}
+
+    - uses: actions/cache@v4
+      with:
+        path: ~/.bun/install/cache
+        key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+    - run: bun install --frozen-lockfile
+      shell: bash
