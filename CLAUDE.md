@@ -30,11 +30,22 @@ Loom v0 exposes **only what PICO-8's SFX/Music tracker allows**, expressed throu
 - Speed 1-255 ticks/step
 - Song chain with loop markers
 
-**Out of scope (v0)** — re-evaluate only once v0 ships
-- Polyrhythms, Euclidean rhythms, polymetric patterns
-- Algorithmic transforms (`every`, `jux`, `struct`, `chunk`, …)
-- Full Strudel mini-notation (groups, alternation, choice)
-- Samples / sample-based synthesis
+**Planned for v0.1 expansion**
+- Mini-notation extensions: groups `[x y]` (#26), alternation `<x y>` (#27), shorthand modifiers `*n` `/n` `@n` (#28)
+- Web Audio adapter with 8-bit chiptune synth (#15)
+- Runtime hot-swap controller (#25)
+- CLI `serve` / `play` / `render` (#18, #19, #24)
+- `.p8` cart import/export (#11)
+
+**Planned for v1**
+- Mini-notation Euclidean rhythms `x(k, n)` (#29)
+- MIDI adapter (#16)
+- CLI REPL (#20)
+
+**Out of scope — re-evaluate only if user demand emerges**
+- Polymetric `{x y}` and true polyrhythms (rare in chiptune)
+- Algorithmic transforms (`jux`, `struct`, `chunk`, inline probability `x?p`)
+- Samples / sample-based synthesis (clashes with the "8-bit synth" identity)
 
 The `core/` module is general (pattern algebra can express far more), but the `pico8/` public API stays locked to PICO-8 semantics. Unlocking Strudel-like features later is purely additive — it won't break existing compositions.
 
