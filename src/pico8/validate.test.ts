@@ -3,7 +3,11 @@ import '@loom/pico8/augment.js';
 import { cat, pure, silence, stack } from '@loom/core/primitives.js';
 import { Time } from '@loom/core/time.js';
 import { Pico8Error } from '@loom/pico8/errors.js';
-import { type Pico8TooManyChannelsDetails, pico8Validate } from '@loom/pico8/validate.js';
+import {
+  MAX_VALIDATE_CYCLES,
+  type Pico8TooManyChannelsDetails,
+  pico8Validate,
+} from '@loom/pico8/validate.js';
 import { describe, expect, it } from 'vitest';
 
 describe('pico8Validate', () => {
@@ -118,16 +122,40 @@ describe('pico8Validate', () => {
     }
   });
 
-  it('rejects non-positive cycles with a TypeError', () => {
-    const pattern = pure({ pitch: 48 });
-    expect(() => {
-      pico8Validate(pattern, 0);
-    }).toThrow(TypeError);
-    expect(() => {
-      pico8Validate(pattern, -1);
-    }).toThrow(TypeError);
-    expect(() => {
-      pico8Validate(pattern, 1.5);
-    }).toThrow(TypeError);
+  describe('cycles input validation', () => {
+    it('rejects non-positive or non-integer cycles with PICO8_INVALID_CYCLES', () => {
+      const pattern = pure({ pitch: 48 });
+      for (const bad of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+        try {
+          pico8Validate(pattern, bad);
+          expect.fail(`expected throw for cycles=${bad}`);
+        } catch (error) {
+          expect(error).toBeInstanceOf(Pico8Error);
+          expect((error as Pico8Error).code).toBe('PICO8_INVALID_CYCLES');
+        }
+      }
+    });
+
+    it('accepts cycles at the MAX_VALIDATE_CYCLES boundary', () => {
+      // silence produces no events, so walking MAX cycles is cheap.
+      expect(() => {
+        pico8Validate(silence, MAX_VALIDATE_CYCLES);
+      }).not.toThrow();
+    });
+
+    it('rejects cycles above MAX_VALIDATE_CYCLES with PICO8_INVALID_CYCLES', () => {
+      try {
+        pico8Validate(silence, MAX_VALIDATE_CYCLES + 1);
+        expect.fail('expected throw');
+      } catch (error) {
+        expect(error).toBeInstanceOf(Pico8Error);
+        const err = error as Pico8Error;
+        expect(err.code).toBe('PICO8_INVALID_CYCLES');
+        expect(err.details).toEqual({
+          cycles: MAX_VALIDATE_CYCLES + 1,
+          max: MAX_VALIDATE_CYCLES,
+        });
+      }
+    });
   });
 });
